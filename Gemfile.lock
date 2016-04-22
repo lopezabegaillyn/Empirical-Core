@@ -517,7 +517,7 @@ GEM
       builder
       nokogiri (>= 1.4.1)
       trollop
-    react-rails (1.4.2)
+    react-rails (1.6.2)
       babel-transpiler (>= 0.7.0)
       coffee-script-source (~> 1.8)
       connection_pool
@@ -754,7 +754,7 @@ DEPENDENCIES
   rails_12factor
   ranked-model
   ransack
-  react-rails (~> 1.4.1)
+  react-rails (~> 1.6, >= 1.6.2)
   redcarpet
   redis-rails
   responders

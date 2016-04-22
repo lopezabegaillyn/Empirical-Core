@@ -93,7 +93,7 @@ gem 'slim-rails'
 gem 'haml-rails'
 
 gem 'es5-shim-rails'
-gem 'react-rails', '~> 1.4.1'
+gem 'react-rails', '~> 1.6', '>= 1.6.2'
 
 # ASSET/UI
 gem 'therubyracer', require: false

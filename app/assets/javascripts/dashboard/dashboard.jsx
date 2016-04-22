@@ -1,11 +1,3 @@
-"use strict";
-$(function() {
-  var ele = $('#dashboard');
-  if (ele.length > 0) {
-    React.render(React.createElement(EC.Dashboard), ele[0]);
-  }
-});
-
 EC.Dashboard = React.createClass({
   getInitialState: function() {
     return ({
@@ -41,7 +33,7 @@ EC.Dashboard = React.createClass({
 
   render: function() {
     return (
-      <div>
+      <div id='dashboard'>
         <EC.ClassOverview data={this.state.performanceQuery} premium={this.state.hasPremium}/>
         {this.hasClasses()}
         <EC.MyResources data={this.state}/>
