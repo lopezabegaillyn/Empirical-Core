@@ -2,7 +2,7 @@
 //= require jquery.selectbox-0.2.js
 //= require bootstrap
 
-
+//= require tabslet.js
 //= require lodash
 //= require underscore.string
 
@@ -14,7 +14,7 @@
 //= require custom
 
 //= require slick.js
-//= require tabslet.js
+
 
 
 
@@ -29,6 +29,7 @@
 //= require react
 //= require react_ujs
 //= require components
+//= require react-rails-hot-loader
 //= require_tree ./
 
 //= require jquery.turbolinks
