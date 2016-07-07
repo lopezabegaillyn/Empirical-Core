@@ -17,6 +17,7 @@ class Auth::GoogleController < ApplicationController
     user = User.find_by(email: email)
     if user.present?
       sign_in(user)
+      TestForEarnedCheckboxesWorker.perform_async(@user.id)
       redirect_to profile_path
     else
       redirect_to new_account_path

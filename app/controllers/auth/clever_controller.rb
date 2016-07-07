@@ -22,6 +22,7 @@ class Auth::CleverController < ApplicationController
   def user_success(data) # data is a User record
     data.update_attributes(ip_address: request.remote_ip)
     sign_in(data)
+    TestForEarnedCheckboxesWorker.perform_async(@user.id)
     redirect_to profile_url(protocol: 'http') # TODO Change this to use SSL when grammar supports SSL
   end
 
