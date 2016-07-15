@@ -2,21 +2,22 @@
 import React from 'react'
 import $ from 'jquery'
 import _ from 'underscore'
+import {Link} from 'react-router';
 
 
 export default React.createClass({
 
 
   getInitialState: function() {
-    return {classrooms: null}
+    return {classrooms: null};
   },
 
   componentDidMount: function() {
-    $.ajax({url: 'students_classrooms_json', format: 'json', success: this.updateClassrooms})
+    $.ajax({url: '/students_classrooms_json', format: 'json', success: this.updateClassrooms});
   },
 
   updateClassrooms: function(data) {
-    this.setState({classrooms: data.classrooms})
+    this.setState({classrooms: data.classrooms});
   },
 
   isActive: function(id, index) {
@@ -26,23 +27,20 @@ export default React.createClass({
   },
 
   mapClassrooms: function() {
-    var that = this
-    var classrooms = _.map(this.state.classrooms, function(classroom, index) {
+    var classrooms = _.map(this.state.classrooms, (classroom, index) => {
       return (
-        <div className={that.isActive(classroom.id, index) + ' classroom-box'} key={classroom.id} onClick={that.props.fetchData.bind(null, classroom.id)}>
-          <div>{classroom.teacher}</div>
-        <div>{classroom.name}</div>
-      </div>
-    )
+        <Link key={classroom.id} to={"/profile/" + classroom.id} activeClassName={"active"}>
+          <div className={this.isActive(classroom.id, index) + ' classroom-box'} key={classroom.id}>
+            <div>{classroom.teacher}</div>
+            <div>{classroom.name}</div>
+          </div>
+        </Link>
+    );
     });
-    return classrooms
+    return classrooms;
   },
 
   render: function() {
-    return(<div>{this.mapClassrooms()}</div>)
+    return(<div>{this.mapClassrooms()}</div>);
   }
-
-
-
-
-})
+});

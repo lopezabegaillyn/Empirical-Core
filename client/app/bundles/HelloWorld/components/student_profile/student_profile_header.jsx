@@ -15,8 +15,9 @@ export default  React.createClass({
           <span className="pull-right student-course-info">
             <StudentsClassroomsHeader currentClassroomId={this.props.data.classroom.id} fetchData={this.props.fetchData}/>
           </span>
+          {this.props.children}
         </div>
       </div>
-    )
+    );
   }
-})
+});

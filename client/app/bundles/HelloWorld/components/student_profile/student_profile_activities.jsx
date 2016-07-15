@@ -9,6 +9,8 @@ export default React.createClass({
     header: React.PropTypes.string.isRequired
   },
 
+
+
   sayCount: function () {
     return [this.props.data.length, 'of', this.props.count].join(' ');
   },
