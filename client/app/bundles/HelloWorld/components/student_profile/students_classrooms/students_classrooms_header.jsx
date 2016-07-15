@@ -29,7 +29,7 @@ export default React.createClass({
   mapClassrooms: function() {
     var classrooms = _.map(this.state.classrooms, (classroom, index) => {
       return (
-        <Link key={classroom.id} to={"/profile/" + classroom.id} activeClassName={"active"}>
+        <Link key={classroom.id} to={"/" + classroom.id} activeClassName={"active"}>
           <div className={this.isActive(classroom.id, index) + ' classroom-box'} key={classroom.id}>
             <div>{classroom.teacher}</div>
             <div>{classroom.name}</div>

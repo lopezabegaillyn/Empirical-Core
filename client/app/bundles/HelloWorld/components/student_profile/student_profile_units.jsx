@@ -7,17 +7,22 @@ import $ from 'jquery'
 
 export default React.createClass({
 
+  // TODO: add spinner when loading
+
   getInitialState: function () {
     return {data:{}};
   },
 
-  componentDidMount: function () {
-    this.fetchData();
+  componentWillReceiveProps: function(nextProps) {
+    if (nextProps.params.classID !== this.props.params.classID) {
+      this.fetchData(nextProps.params.classID);
+    }
   },
 
-  fetchData: function () {
-    this.setState({currentClassroom: this.props.classID, loading: true});
-    $.ajax({url: '/profile.json', data: {current_page: 1, current_classroom_id: this.props.classID}, format: 'json', success: this.loadProfile});
+  fetchData: function (nextID) {
+    var classID = nextID || this.props.params.classID;
+    this.setState({currentClassroom: classID, loading: true});
+    $.ajax({url: '/profile.json', data: {current_page: 1, current_classroom_id: classID}, format: 'json', success: this.loadProfile});
   },
 
   loadProfile: function (data) {
