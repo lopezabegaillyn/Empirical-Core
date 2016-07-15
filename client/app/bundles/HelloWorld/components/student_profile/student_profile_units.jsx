@@ -16,14 +16,13 @@ export default React.createClass({
   },
 
   fetchData: function () {
-    this.setState({currentClassroom: this.props.params.classID, loading: true});
-    $.ajax({url: '/profile.json', data: {current_page: 1, current_classroom_id: this.props.params.classID}, format: 'json', success: this.loadProfile});
+    this.setState({currentClassroom: this.props.classID, loading: true});
+    $.ajax({url: '/profile.json', data: {current_page: 1, current_classroom_id: this.props.classID}, format: 'json', success: this.loadProfile});
   },
 
   loadProfile: function (data) {
     this.setState({data: data});
   },
-
 
   render: function () {
     var units = _.mapObject(this.state.data.grouped_scores, function(val, key) {

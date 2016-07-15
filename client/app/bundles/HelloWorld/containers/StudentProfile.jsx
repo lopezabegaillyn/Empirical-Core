@@ -1,6 +1,6 @@
 import React from 'react'
 import { Router, Route, Link, browserHistory } from 'react-router'
-import StudentProfileUnits from '../components/student_profile/student_profile_units.jsx'
+import StudentProfileAssignments from '../components/student_profile/student_profile_assignments.jsx'
 import App from '../components/student_profile/index.jsx'
 export default React.createClass({
 
@@ -10,7 +10,8 @@ export default React.createClass({
       return (
         <Router history={browserHistory}>
           <Route path="/profile" component={App}>
-            <Route path=":classID" component={StudentProfileUnits}/>
+            {/*<Route path=":classID" component={StudentProfileUnits}/>*/}
+            <Route path=":classID" component={StudentProfileAssignments}/>
           </Route>
         </Router>
       );
