@@ -13,9 +13,8 @@ export default  React.createClass({
         <div className="container">
           <span className="section-header">{this.props.data.name}</span>
           <span className="pull-right student-course-info">
-            <StudentsClassroomsHeader currentClassroomId={this.props.data.classroom.id} fetchData={this.props.fetchData}/>
+            <StudentsClassroomsHeader currentClassroomId={this.props.data.classroom.id}/>
           </span>
-          {this.props.children}
         </div>
       </div>
     );

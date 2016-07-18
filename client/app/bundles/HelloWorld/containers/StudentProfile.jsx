@@ -14,8 +14,7 @@ export default React.createClass({
       return (
         <Router history={hashHistory}>
           <Route path="/" component={App}>
-            <Route path=":classID" component={StudentProfileUnits}/>
-            {/*<Route path=":classID" component={StudentProfileAssignments}/>*/}
+            <Route path=":classID" component={StudentProfileAssignments}/>
           </Route>
         </Router>
       );

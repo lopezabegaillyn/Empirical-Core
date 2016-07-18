@@ -13,14 +13,17 @@ export default React.createClass({
     return {data:{}};
   },
 
+  componentDidMount: function () {
+    this.fetchData(this.props.classID);
+  },
+
   componentWillReceiveProps: function(nextProps) {
-    if (nextProps.params.classID !== this.props.params.classID) {
-      this.fetchData(nextProps.params.classID);
+    if (nextProps.classID !== this.props.classID) {
+      this.fetchData(nextProps.classID);
     }
   },
 
-  fetchData: function (nextID) {
-    var classID = nextID || this.props.params.classID;
+  fetchData: function (classID) {
     this.setState({currentClassroom: classID, loading: true});
     $.ajax({url: '/profile.json', data: {current_page: 1, current_classroom_id: classID}, format: 'json', success: this.loadProfile});
   },
