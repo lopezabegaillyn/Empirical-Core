@@ -13,8 +13,12 @@ class Teachers::ClassroomsController < ApplicationController
   end
 
   def new
-    @classroom = current_user.classrooms_i_teach.new
-    @classroom.generate_code
+    # just here to render the new view, thenr eact takes care of everything
+  end
+
+  def classrooms_i_teach
+    @classrooms = current_user.classrooms_i_teach
+    render json: @classrooms
   end
 
   def regenerate_code
