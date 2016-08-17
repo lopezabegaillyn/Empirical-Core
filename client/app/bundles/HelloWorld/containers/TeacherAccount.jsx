@@ -257,7 +257,6 @@ export default React.createClass({
         return value;
     },
     updatePassword: function() {
-      debugger;
         var password = $(this.refs.password).val()
         this.setState({password: password});
     },
