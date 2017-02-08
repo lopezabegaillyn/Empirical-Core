@@ -20,6 +20,7 @@ class PasswordResetController < ApplicationController
 
   def show
     @user = User.find_by_token!(params[:id])
+    flash.now[:error] = 'Your reset token is invalid. Please click the login link below to try again.' if !@user 
   end
 
   def update
