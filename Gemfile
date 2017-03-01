@@ -76,7 +76,6 @@ gem 'sinatra', '>= 1.3.0', :require => nil
 # JS/APP/UI
 gem 'turbolinks'
 gem 'jquery-turbolinks'
-gem 'select2-rails'
 gem 'jbuilder'
 gem 'active_link_to'
 
