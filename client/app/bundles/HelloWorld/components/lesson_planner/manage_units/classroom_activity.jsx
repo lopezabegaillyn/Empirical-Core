@@ -41,7 +41,7 @@ export default React.createClass({
 	},
 
 	buttonForRecommendations: function() {
-		if (this.props.data.activity_id === 413 && window.location.pathname.includes('diagnostic_reports')) {
+		if (this.props.data.activity.classification.name === 'Quill Diagnostic' && window.location.pathname.includes('diagnostic_reports')) {
 			return (
 				<div onClick={this.goToRecommendations} className="recommendations-button">
 					Recommendations

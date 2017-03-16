@@ -20,7 +20,7 @@ export default React.createClass({
   },
 
   componentWillMount: function(){
-    if (window.location.hash.includes('/a/413')) {
+    if (window.location.hash.includes('/a/413') || window.location.hash.includes('/a/483') || window.location.hash.includes('/a/447')) {
       $('.diagnostic-tab').addClass('active');
       $('.activity-analysis-tab').removeClass('active');
     }

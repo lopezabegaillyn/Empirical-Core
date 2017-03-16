@@ -1,4 +1,6 @@
 class Recommendations
+  # TODO: this will need to handle multiple diagnostics. We could probably just create
+  # a different method for each type of diagnostic until we move to a more scalable solution, e.g. a recommendation model..
     def diagnostic
         [
             # {

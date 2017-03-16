@@ -168,6 +168,7 @@ module PublicProgressReports
 
     def get_recommendations_for_classroom classroom_id
       classroom = Classroom.find(classroom_id)
+      # TODO: we will ultimately need to pass the specific activity to this
       diagnostic = Activity.find(413)
       students = classroom.students
       activity_sessions = students.map do |student|
@@ -177,6 +178,7 @@ module PublicProgressReports
       activity_sessions_counted = activity_sessions_with_counted_concepts(activity_sessions)
       unique_students = activity_sessions.map {|activity_session| user = activity_session.user; {id: user.id, name: user.name}}
                                          .sort_by {|stud| stud[:name].split()[1]}
+      #  TODO: here we will need to expres which diagnostic so as to get the appropriate recommendations 
       recommendations = Recommendations.new.diagnostic.map do |activity_pack_recommendation|
         students = []
         activity_sessions_counted.each do |activity_session|
