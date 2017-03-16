@@ -36,6 +36,9 @@ feature 'Signing up', js: true do
 
     def sign_up_teacher_and_select_school(user, send_newsletter)
       sign_up_teacher(user, send_newsletter)
+      "🐢🐢🐢🐢🐢\nGoing to sleep...\n🐢🐢🐢🐢🐢"
+      sleep 3
+      "🐇🐇🐇🐇🐇\nWaking up!\n🐇🐇🐇🐇🐇"
       sign_up_page.select_school(nil)
     end
 
