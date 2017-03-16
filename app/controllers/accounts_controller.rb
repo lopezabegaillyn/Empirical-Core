@@ -47,7 +47,7 @@ class AccountsController < ApplicationController
     else
       school = School.find_or_create_by(name: params[:school_id_or_type])
     end
-    puts "🐳🐳🐳🐳🐳\n#{current_user.inspect}\n🐳🐳🐳🐳🐳"
+    puts "🐳🐳🐳🐳🐳 #{current_user.inspect}"
     current_user.schools << school
     if current_user.schools.compact.any?
       find_or_create_checkbox('Add School', current_user)
