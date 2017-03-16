@@ -53,6 +53,9 @@ class AccountsController < ApplicationController
     else
       school = School.find_or_create_by(name: params[:school_id_or_type])
     end
+    if current_user.nil?
+      puts "⚠️⚠️⚠️⚠️⚠️ CURRENT USER IS NIL"
+    end
     puts "🐳🐳🐳🐳🐳 #{current_user.inspect}"
     current_user.schools << school
     if current_user.schools.compact.any?
