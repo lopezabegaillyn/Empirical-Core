@@ -37,6 +37,7 @@ class AccountsController < ApplicationController
     else
       render json: {errors: @user.errors}, status: 422
     end
+    puts "🤔🤔🤔🤔🤔 #{current_user.inspect}"
   end
 
   def select_school

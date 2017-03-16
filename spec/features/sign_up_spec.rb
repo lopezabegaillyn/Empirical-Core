@@ -35,15 +35,11 @@ feature 'Signing up', js: true do
     end
 
     def sign_up_teacher_and_select_school(user, send_newsletter)
-      puts "🤔🤔🤔🤔🤔 #{current_user.inspect}"
       sign_up_teacher(user, send_newsletter)
       puts "🐢🐢🐢🐢🐢 Going to sleep..."
-      puts "🤔🤔🤔🤔🤔 #{current_user.inspect}"
       sleep 3
       puts "🐇🐇🐇🐇🐇 Waking up!"
-      puts "🤔🤔🤔🤔🤔 #{current_user.inspect}"
       sign_up_page.select_school(nil)
-      puts "🤔🤔🤔🤔🤔 #{current_user.inspect}"
     end
 
     def self.signup_succeeded; 'signup succeeded and'; end
