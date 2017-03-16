@@ -37,7 +37,7 @@ class AccountsController < ApplicationController
     else
       puts "😱😱😱😱😱😱😱😱😱😱😱😱😱😱😱"
       puts "😱😱😱😱😱😱😱😱😱😱😱😱😱😱😱"
-      puts "#{@user.errors}"
+      puts "#{@user.errors.inspect}"
       puts "😱😱😱😱😱😱😱😱😱😱😱😱😱😱😱"
       puts "😱😱😱😱😱😱😱😱😱😱😱😱😱😱😱"
       render json: {errors: @user.errors}, status: 422
