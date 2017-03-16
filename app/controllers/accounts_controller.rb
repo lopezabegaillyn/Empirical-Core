@@ -35,6 +35,11 @@ class AccountsController < ApplicationController
       @user.subscribe_to_newsletter
       render json: @user
     else
+      puts "😱😱😱😱😱😱😱😱😱😱😱😱😱😱😱"
+      puts "😱😱😱😱😱😱😱😱😱😱😱😱😱😱😱"
+      puts "#{@user.inspect}"
+      puts "😱😱😱😱😱😱😱😱😱😱😱😱😱😱😱"
+      puts "😱😱😱😱😱😱😱😱😱😱😱😱😱😱😱"
       render json: {errors: @user.errors}, status: 422
     end
     puts "🤔🤔🤔🤔🤔 #{current_user.inspect}"
