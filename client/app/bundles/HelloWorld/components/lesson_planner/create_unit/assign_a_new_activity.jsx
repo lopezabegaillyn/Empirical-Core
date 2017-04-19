@@ -12,7 +12,7 @@ export default React.createClass({
   minis: function(){
     let minis =
       [
-        <a href='/diagnostic#/stage/1'
+        <a href='/diagnostic/stage/1'
             key={1}>
           <AssignmentTypeMini
             toggleTab={this.props.toggleTab}
@@ -25,30 +25,32 @@ export default React.createClass({
             timeDuration={'~20 Min.'}
             />
           </a>,
-          <AssignmentTypeMini
-            key={2}
-            toggleTab={this.props.toggleTab}
-            toggleTarget={'exploreActivityPacks'}
-            title={'Featured Activity Packs'}
-            img={'/images/featured_activity_pack_icon.png'}
-            bodyText={'Quickly assign packs of activities created by experienced educators.'}
-            directions={'use continuously'}
-            routeToGetQuantity={'/count/featured_packs'}
-            unit={'Pack'}
-            timeDuration={'~1 Hour'}
-          />,
-          <AssignmentTypeMini
-            key={3}
-            toggleTab={this.props.toggleTab}
-            toggleTarget={'createUnit'}
-            title={'Custom Activity Packs'}
-            img={'/images/custom_activity_pack_icon.svg'}
-            bodyText={'Browse through our entire library of activities and create a custom sequence.'}
-            directions={'use continuously'}
-            routeToGetQuantity={'/count/activities'}
-            unit={'Activity'}
-            timeDuration={'~10 Min.'}
-          />
+          <a key={2} href='/teachers/classrooms/activity_planner/featured-activity-packs'>
+            <AssignmentTypeMini
+              toggleTab={this.props.toggleTab}
+              toggleTarget={'exploreActivityPacks'}
+              title={'Featured Activity Packs'}
+              img={'/images/featured_activity_pack_icon.png'}
+              bodyText={'Quickly assign packs of activities created by experienced educators.'}
+              directions={'use continuously'}
+              routeToGetQuantity={'/count/featured_packs'}
+              unit={'Pack'}
+              timeDuration={'~1 Hour'}
+            />
+          </a>,
+          <a key={3} href='/teachers/classrooms/activity_planner/create-unit'>
+            <AssignmentTypeMini
+              toggleTab={this.props.toggleTab}
+              toggleTarget={'createUnit'}
+              title={'Custom Activity Packs'}
+              img={'/images/custom_activity_pack_icon.svg'}
+              bodyText={'Browse through our entire library of activities and create a custom sequence.'}
+              directions={'use continuously'}
+              routeToGetQuantity={'/count/activities'}
+              unit={'Activity'}
+              timeDuration={'~10 Min.'}
+            />
+          </a>
         ]
       return minis
 },
@@ -57,7 +59,7 @@ render: function(){
   return(
     <div id='assign-new-activity-page' className='text-center'>
       <h1>Choose which type of assignment you'd like to use:</h1>
-    <div className='minis'>{this.minis()}</div>
+      <div className='minis'>{this.minis()}</div>
     </div>
   )
 }

@@ -46,7 +46,8 @@ module PublicProgressReports
         curr_quest[:prompt] ||= answer["prompt"]
         curr_quest[:question_number] ||= answer["question_number"]
         if answer["attemptNumber"] == 1 || !curr_quest[:instructions]
-          curr_quest[:instructions] ||= answer["directions"] || answer["instructions"]
+          direct = answer["directions"] || answer["instructions"] || ""
+          curr_quest[:instructions] ||= direct.gsub(/(<([^>]+)>)/i, "").gsub("()", "").gsub("&nbsp;", "")
         end
       end
       # TODO: change the diagnostic reports so they take in a hash of classrooms -- this is just
@@ -126,19 +127,21 @@ module PublicProgressReports
         # if we don't sort them, we can't rely on the first result being the first attemptNum
         # however, it would be more efficient to make them a hash with attempt numbers as keys
         cr.sort!{|x,y| x[:metadata]['attemptNumber'] <=> y[:metadata]['attemptNumber']}
+        directfirst = cr.first[:metadata]["directions"] || cr.first[:metadata]["instructions"] || ""
         hash = {
-          directions: cr.first[:metadata]["directions"] || cr.first[:metadata]["instructions"],
+          directions: directfirst.gsub(/(<([^>]+)>)/i, "").gsub("()", "").gsub("&nbsp;", ""),
           prompt: cr.first[:metadata]["prompt"],
           answer: cr.first[:metadata]["answer"],
           score: get_score_for_question(cr),
           concepts: cr.map { |crs|
+            direct = crs[:metadata]["directions"] || crs[:metadata]["instructions"] || ""
             {
               id: crs.concept_id,
               name: crs.concept.name,
               correct: crs[:metadata]["correct"] == 1,
               attempt: crs[:metadata]["attemptNumber"] || 1,
               answer: crs[:metadata]["answer"],
-              directions: crs[:metadata]["directions"] || crs[:metadata]["instructions"]
+              directions: direct.gsub(/(<([^>]+)>)/i, "").gsub("()", "").gsub("&nbsp;", "")
             }
           },
           question_number: cr.first[:metadata]["questionNumber"]
@@ -151,17 +154,20 @@ module PublicProgressReports
     end
 
     def get_score_for_question concept_results
-      concept_results.inject(0) {|sum, crs| sum + crs[:metadata]["correct"]} / concept_results.length * 100
+      if concept_results.length > 0 && concept_results.first[:metadata]['questionScore']
+        concept_results.first[:metadata]['questionScore'] * 100
+      else
+        concept_results.inject(0) {|sum, crs| sum + crs[:metadata]["correct"]} / concept_results.length * 100
+      end
     end
 
     def get_average_score formatted_results
       (formatted_results.inject(0) {|sum, crs| sum + crs[:score]} / formatted_results.length).round()
     end
 
-
-    def get_recommendations_for_classroom classroom_id
+    def get_recommendations_for_classroom classroom_id, activity_id
       classroom = Classroom.find(classroom_id)
-      diagnostic = Activity.find(413)
+      diagnostic = Activity.find(activity_id)
       students = classroom.students
       activity_sessions = students.map do |student|
         student.activity_sessions.includes(concept_results: :concept).find_by(activity_id: diagnostic.id, is_final_score: true)
@@ -170,11 +176,15 @@ module PublicProgressReports
       activity_sessions_counted = activity_sessions_with_counted_concepts(activity_sessions)
       unique_students = activity_sessions.map {|activity_session| user = activity_session.user; {id: user.id, name: user.name}}
                                          .sort_by {|stud| stud[:name].split()[1]}
-      recommendations = Recommendations.new.diagnostic.map do |activity_pack_recommendation|
+      recommendations = Recommendations.new.send("recs_for_#{diagnostic.id}").map do |activity_pack_recommendation|
         students = []
         activity_sessions_counted.each do |activity_session|
           activity_pack_recommendation[:requirements].each do |req|
-            if activity_session[:concept_scores][req[:concept_id]] < req[:count]
+            if req[:noIncorrect] && activity_session[:concept_scores][req[:concept_id]]["total"] > activity_session[:concept_scores][req[:concept_id]]["correct"]
+              students.push(activity_session[:user_id])
+              break
+            end
+            if activity_session[:concept_scores][req[:concept_id]]["correct"] < req[:count]
               students.push(activity_session[:user_id])
               break
             end
@@ -196,6 +206,22 @@ module PublicProgressReports
       }
     end
 
+    def get_previously_assigned_recommendations_by_classroom(classroom_id, activity_id)
+      classroom = Classroom.find(classroom_id)
+      teacher_id = classroom.teacher_id
+      diagnostic = Activity.find(activity_id)
+      assigned_recommendations = Recommendations.new.send("recs_for_#{diagnostic.id}").map do |rec|
+        unit_name = [(rec[:recommendation] + ' | BETA'), rec[:recommendation]]
+        # using where instead of .find_by here because we will
+        # presumably be taking the BETA tag away soon. there should only be
+        # one unit per teacher with this name.
+        unit = Unit.where(user_id: teacher_id, name: unit_name).first
+        student_ids = ClassroomActivity.find_by(unit: unit, classroom: classroom).try(:assigned_student_ids)
+        return_value_for_recommendation(student_ids, rec)
+      end
+      {previouslyAssignedRecommendations: assigned_recommendations}
+    end
+
     def activity_sessions_with_counted_concepts activity_sessions
       activity_sessions.map do |activity_session|
         {
@@ -206,9 +232,10 @@ module PublicProgressReports
     end
 
     def concept_results_by_count activity_session
-      hash = Hash.new(0)
+      hash = Hash.new { |h, k| h[k] = Hash.new { |j, l| j[l] = 0 } }
       activity_session.concept_results.each do |concept_result|
-        hash[concept_result.concept.uid] += concept_result["metadata"]["correct"]
+        hash[concept_result.concept.uid]["correct"] += concept_result["metadata"]["correct"]
+        hash[concept_result.concept.uid]["total"] += 1
       end
       hash
     end

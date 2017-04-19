@@ -54,11 +54,18 @@ gem 'global'
 gem 'google-api-client', '0.8.6'
 gem 'mailchimp-api', require: 'mailchimp'
 gem 'faraday_middleware'
+gem 'newrelic_rpm'
 gem 'pointpin', '~> 1.0.0' #IP-GEOLOCATION
 gem 'stripe'
 gem 'prawn'
+gem 'prawn-table'
 gem 'pdf-core'
+gem 'pdf-inspector'
 gem 'ttfunk'
+
+
+# WEBSOCKETS
+gem 'pusher'
 
 # PARSING
 gem 'parslet'
@@ -77,7 +84,6 @@ gem 'jquery-turbolinks'
 gem 'select2-rails'
 gem 'jbuilder'
 gem 'active_link_to'
-gem 'lodash-rails', '~> 3.10.1'
 
 # METRICS
 gem 'analytics-ruby', '~> 2.0.0', :require => 'segment/analytics'
@@ -91,7 +97,6 @@ gem 'sass-rails'
 
 gem 'coffee-rails'
 gem 'jquery-rails'
-gem 'jquery-ui-rails'
 
 gem 'slim-rails'
 gem 'haml-rails'
@@ -121,7 +126,6 @@ gem 'clever-ruby'
 
 group :production, :staging do
   gem 'rails_12factor'
-  gem 'newrelic_rpm'
   gem 'lograge' # for making logs more dense
   # gem "rack-timeout"
 end

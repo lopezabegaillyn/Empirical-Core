@@ -17,25 +17,26 @@ export default React.createClass({
 
 	getInitialState () {
 		return {
-			unitNames: []
+			prohibitedUnitNames: [],
+			newUnitId: null
 		}
 	},
 
 	componentDidMount: function(){
-		this.getExistingUnitNames()
+		this.getProhibitedUnitNames()
 
 	},
 
-	getExistingUnitNames: function() {
+	getProhibitedUnitNames: function() {
 	  const that = this;
-		$.get('../unit_names').done(function(data) {
-			that.setState({unitNames: data.unitNames})
+		$.get('/teachers/prohibited_unit_names').done(function(data) {
+			that.setState({prohibitedUnitNames: data.prohibitedUnitNames})
 		});
 	},
 
 	isUnitNameUnique: function() {
 		const unit = this.getUnitName();
-		return !this.state.unitNames.includes(unit.toLowerCase());
+		return !this.state.prohibitedUnitNames.includes(unit.toLowerCase());
 	},
 
 	getStage: function() {
@@ -132,7 +133,7 @@ export default React.createClass({
 			data: JSON.stringify(this.formatCreateRequestData()),
 			dataType: 'json',
 			contentType: 'application/json',
-			success: this.onCreateSuccess
+			success: (response) => this.onCreateSuccess(response)
 		});
 	},
 
@@ -182,14 +183,14 @@ export default React.createClass({
 		return x;
 	},
 
-	onCreateSuccess: function() {
+	onCreateSuccess: function(response) {
+		this.setState({newUnitId: response.id})
 		this.props.actions.toggleStage(3);
 	},
 
 	isUnitNameValid: function() {
 		return ((this.getUnitName() != null) && (this.getUnitName() != ''));
 	},
-
 
 
 	determineIfInputProvidedAndValid: function() {
@@ -233,14 +234,14 @@ export default React.createClass({
 		let msg;
 		if (!a) {
 			if (!b) {
-				msg = 'Please provide a unit name and select activities';
+				msg = 'Please provide a name and select activities for your activity pack.';
 			} else {
-				msg = 'Please provide a unit name';
+				msg = 'Please provide a name for your activity pack.';
 			}
 		} else if (!b) {
 			msg = 'Please select activities';
 		} else if (uniqueUnitNameError) {
-			msg = `Please select a unique unit name. You have already used ${this.getUnitName()}.`
+			msg = 'Please select a unique name for your activity pack.'
 		} else {
 			msg = null;
 		}
@@ -265,7 +266,13 @@ export default React.createClass({
 	},
 
 	stage1SpecificComponents: function() {
-		return (<UnitStage1 toggleActivitySelection={this.props.actions.toggleActivitySelection} unitName={this.getUnitName()} updateUnitName={this.updateUnitName} selectedActivities={this.getSelectedActivities()} determineIfInputProvidedAndValid={this.determineIfInputProvidedAndValid} errorMessage={this.determineStage1ErrorMessage()} clickContinue={this.clickContinue}/>);
+		return (<UnitStage1
+												toggleActivitySelection={this.props.actions.toggleActivitySelection}
+												unitName={this.getUnitName()} updateUnitName={this.updateUnitName}
+												selectedActivities={this.getSelectedActivities()}
+												determineIfInputProvidedAndValid={this.determineIfInputProvidedAndValid}
+												errorMessage={this.determineStage1ErrorMessage()}
+												clickContinue={this.clickContinue}/>);
 	},
 
 	stage2SpecificComponents: function () {
@@ -288,7 +295,7 @@ export default React.createClass({
 		if ((!!this.props.actions.assignSuccessActions) && (!!this.props.data.assignSuccessData)) {
 			return (<UnitTemplatesAssigned actions={this.props.actions.assignSuccessActions} data={this.props.data.assignSuccessData}/>);
 		} else {
-			window.location.href = '/teachers/classrooms/activity_planner';
+			window.location.href = `/teachers/classrooms/activity_planner#${this.state.newUnitId}`;
 		}
 	},
 
@@ -305,7 +312,7 @@ export default React.createClass({
 		return (
 			<span>
 				<ProgressBar stage={this.getStage()}/>
-				<div className='container lesson_planner_main'>
+				<div className='container'>
 					{stageSpecificComponents}
 				</div>
 			</span>

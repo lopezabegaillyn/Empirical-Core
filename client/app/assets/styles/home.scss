@@ -20,19 +20,24 @@ a {
 }
 
 a.q-button {
+  border: solid 1px;
+  border-radius: 6px;
+  cursor: pointer;
   display: inline-block;
   font-family: $family-sans-serif;
-  font-size: 16px;
-  cursor: pointer;
+  font-size: 18px;
+  margin-top: 5px;
+  padding: 7px 20px 6px;
   text-align: center;
-  border: solid 1px;
-  padding: 7px 20px 4px;
-  border-radius: 6px;
   user-select: none;
-  &.icon-button {
-    .fa {
-      padding-left: 5px;
-    }
+  vertical-align: middle;
+  &.icon-button,
+  &.learn-more-button {
+    box-sizing: border-box;
+    padding-top: 9px;
+    font-weight: 600;
+    height: 40px;
+    margin-right: 10px;
   }
   &.cta-button {
     // padding-left: 33px;
@@ -42,10 +47,17 @@ a.q-button {
     font-weight: bold;
     padding: 11px 33px 8px;
   }
+  &:hover.text-white {
+    color: white;
+  }
   &.small-button {
     font-size: 14px;
   }
+  &:hover {
+    text-decoration: none;
+  }
 }
+
 
 .flex-row {
   display: flex;
@@ -91,11 +103,15 @@ a.q-button {
 
 
 
-$list: (quillgreen: $quillgreen, quillred: $quillred, quillnavbar: $quillnavbar, quillforestgreen: $quillforestgreen, quillblue: $quillblue, white: $white, black: $black, orange: $orange, red: $red, darkred: $darkred, darkorange: $darkorange, darkblue: $darkblue, green: $green, darkgreen2: $darkgreen2, darkgray: $darkgray, purple: $purple);
+$list: (quillgreen: $quillgreen, quillred: $quillred, quillnavbar: $quillnavbar, quillforestgreen: $quillforestgreen, quillblue: $quillblue, white: $white, black: $black, orange: $orange, red: $red, darkred: $darkred, darkorange: $darkorange, darkblue: $darkblue, green: $green, darkgreen2: $darkgreen2, lightgray: $lightgray, darkgray: $darkgray, purple: $purple);
 
 @each $name, $color in $list {
   .text-#{$name} {
     color: $color;
+    &:hover, &:focus {
+      color: $color;
+      text-decoration: none;
+    }
   }
   .bg-#{$name} {
     background-color: $color;
@@ -117,12 +133,13 @@ $list: (quillgreen: $quillgreen, quillred: $quillred, quillnavbar: $quillnavbar,
   }
 }
 
-$background-images-list: (diagnostic-pattern connect-pattern grammar-pattern proofreader-pattern);
+$background-images-list: (diagnostic-pattern-magnifier connect-pattern-bullseye grammar-pattern-puzzle proofreader-pattern-flag);
 
 @each $background-image in $background-images-list {
   .bg-image-#{$background-image} {
     background-image: url("../../../../public/images/background_images/#{$background-image}.png");
     background-repeat: repeat;
+    background-position-y: -10px;
   }
 }
 
@@ -228,6 +245,14 @@ nav.q-navbar-home {
 
   /* small screens */
 
+  @media only screen and (max-width: 865px) {
+    a.q-button {
+      // &.cta-button, &.icon-button {
+        padding-left: 0px;
+        padding-right: 0px;
+      // }
+    }
+  }
   @media screen and (min-width: 551px) {
     nav.home-nav-dropdown[role="home-custom-dropdown"] {
       display: none;
@@ -322,9 +347,12 @@ nav.q-navbar-home {
 }
 
 .q-hero-text {
+  /* bring your own prefixes */
   text-align: center;
   p {
     font-size: 20px;
+    max-width: 460px;
+    margin: auto;
   }
 }
 
@@ -357,5 +385,49 @@ nav.q-navbar-home {
 @media only screen and (max-width : 419px) {
   .cta-home {
     margin-bottom: 20px;
+  }
+}
+
+@media only screen and (max-width: 1152px) and (min-width: 656px) {
+  .info-section {
+    .icon-button {
+      padding-left: 0px;
+      padding-right: 0px;
+    }
+  }
+  .icon-button,
+  .learn-more-button {
+    width: 227px;
+  }
+  .press-cta {
+    a.q-button.cta-button {
+      padding-left: 0px;
+      padding-right: 0px;
+    }
+  }
+}
+
+// -ms-high-contrast is Microsoft-specific, available in IE 10+
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  .tool-section {
+    .video-section {
+      // IE has a bug regarding using minimum height without a specific height specified
+        height: 610px;
+        img {
+          top: 30px;
+        }
+      }
+    }
+}
+
+@media all and (max-width: 900px) and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  .press-links {
+    display: none !important;
+  }
+
+  .press-cta {
+    a.q-button.cta-button {
+      margin-top: 80px;
+    }
   }
 }

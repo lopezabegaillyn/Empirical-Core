@@ -28,7 +28,16 @@ Rails.application.config.assets.precompile +=
     "app-bundle.js",
     "vendor-bundle.js",
     "home-bundle.js",
+    "student-bundle.js",
+    "student.js",
+    "session-bundle.js",
+    "session.js",
+    "firewall_test-bundle.js",
+    "firewall_test.js",
+    "public-bundle.js",
+    "public.js",
     "home.css",
     "home.js",
+    "cookie_warning.js",
     "application_#{type}.css"
   ]

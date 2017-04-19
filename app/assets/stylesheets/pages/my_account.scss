@@ -51,8 +51,11 @@
     //padding-top: 0 !important;
     //padding-bottom: 0 !important;
   }
-  .delete-account.btn {
+  .delete-account {
     line-height: 0;
+    &:hover {
+      cursor: pointer;
+    }
   }
   .error {
     color: red;
@@ -84,6 +87,16 @@
     }
     #select_school {
       width: 50%;
+    }
+  }
+}
+
+@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
+  #my-account, #staff-teacher-account-editor, .user-profile-editor {
+    .row {
+      input {
+        line-height: normal;
+      }
     }
   }
 }

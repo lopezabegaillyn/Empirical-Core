@@ -1,19 +1,20 @@
 class ClassroomActivity < ActiveRecord::Base
   include CheckboxCallback
-
+  include ::NewRelic::Agent
 
   belongs_to :classroom
   belongs_to :activity
   belongs_to :unit, touch: true
   has_one :topic, through: :activity
-  has_many :activity_sessions, dependent: :destroy
+  has_many :activity_sessions
 
   default_scope { where(visible: true) }
   scope :with_topic, ->(tid) { joins(:topic).where(topics: {id: tid}) }
 
+  validate :not_duplicate, :on => :create
 
   after_create :assign_to_students
-  after_save :teacher_checkbox, :assign_to_students
+  after_save :teacher_checkbox, :assign_to_students, :hide_appropriate_activity_sessions
 
   def assigned_students
     User.where(id: assigned_student_ids)
@@ -28,8 +29,37 @@ class ClassroomActivity < ActiveRecord::Base
   end
 
   def session_for user
-    ass = activity_sessions.where(user: user, activity: activity).includes(:activity).order(created_at: :asc)
-    as = if ass.any? then ass.first else activity_sessions.create(user: user, activity: activity) end
+    ass = ActivitySession.unscoped.where(classroom_activity: self, user: user, activity: activity).includes(:activity).order(created_at: :asc)
+    if ass.any?
+      if ass.any? { |as| as.is_final_score }
+        keeper = ass.find { |as| as.is_final_score}
+      # the next two cases should not be necessary to handle
+      # since the highest score should always have .is_final_score
+      # and only one should be started at a time,
+      # but due to some data confusion we're going to leave it in for now
+      elsif ass.any? { |as| as.state == 'finished' }
+        keeper = ass.find_all { |as| as.state == 'finished' }.sort_by { |as| as.percentage }.first
+      elsif ass.any? { |as| as.state == 'started' }
+        keeper = ass.find_all { |as| as.state == 'started' }.sort_by { |as| as.updated_at }.last
+      else
+        keeper = ass.sort_by { |as| as.updated_at }.last
+      end
+      keeper.update(visible: true)
+      return keeper
+    else
+      activity_sessions.create(user: user, activity: activity)
+    end
+
+    # if as.save
+    #
+    # else
+    #   if as.errors[""]
+    #     begin
+    #
+    #     rescue
+    #
+    #     end
+    # end
   end
 
   def activity_session_metadata
@@ -108,6 +138,35 @@ class ClassroomActivity < ActiveRecord::Base
     end
   end
 
+  def sibling_due_date
+    ClassroomActivity.where(unit_id: self.unit_id, activity_id: self.activity_id, classroom_id: self.classroom_id)
+                      .where.not(due_date: nil).limit(1).pluck(:due_date).first
+  end
+
+  def hide_appropriate_activity_sessions
+    # on save callback that checks if archived
+    if self.visible == false
+      hide_all_activity_sessions
+      return
+    end
+    hide_unassigned_activity_sessions
+  end
+
+  def hide_unassigned_activity_sessions
+    #validate or hides any other related activity sessions
+    self.activity_sessions.each do |as|
+      if !validate_assigned_student(as.user_id)
+        as.update(visible: false)
+      end
+    end
+  end
+
+  def hide_all_activity_sessions
+    self.activity_sessions.each do |as|
+      as.update(visible: false)
+    end
+  end
+
   class << self
     def create_session(activity, options = {})
       classroom_activity = where(activity_id: activity.id, classroom_id: options[:user].classrooms.last.id).first_or_create
@@ -117,7 +176,9 @@ class ClassroomActivity < ActiveRecord::Base
 
 
   def checkbox_type
-    if (self.unit && UnitTemplate.find_by_name(self.unit.name))
+    if self.activity_id == 413
+      checkbox_name = 'Assign Entry Diagnostic'
+    elsif self.unit && UnitTemplate.find_by_name(self.unit.name)
       checkbox_name = 'Assign Featured Activity Pack'
     else
       checkbox_name = 'Build Your Own Activity Pack'
@@ -132,6 +193,19 @@ class ClassroomActivity < ActiveRecord::Base
     end
   end
 
+  private
 
+  def not_duplicate
+    if ClassroomActivity.find_by(classroom_id: self.classroom_id, activity_id: self.activity_id, unit_id: self.unit_id, visible: self.visible)
+      begin
+        raise 'This classroom activity is a duplicate'
+      rescue => e
+        NewRelic::Agent.notice_error(e)
+        errors.add(:duplicate_classroom_activity, "this classroom activity is a duplicate")
+      end
+    else
+      return true
+    end
+  end
 
 end

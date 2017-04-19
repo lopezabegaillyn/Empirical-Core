@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`CleverSignUp component should render 1`] = `
+<a
+  href=""
+>
+  <img
+    className="google-sign-up"
+    src="/images/sign_up_with_clever.png"
+  />
+</a>
+`;

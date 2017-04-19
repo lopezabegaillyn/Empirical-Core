@@ -29,12 +29,24 @@ module Teacher
     classrooms_i_teach.any? && !classrooms_i_teach.all?(&:new_record?)
   end
 
+  def google_classrooms
+    Classroom.where(teacher_id: self.id).where.not(google_classroom_id: nil)
+  end
+
   def scorebook_scores(current_page=1, classroom_id=nil, unit_id=nil, begin_date=nil, end_date=nil)
     Scorebook::Query.new(self).query(current_page, classroom_id, unit_id, begin_date, end_date)
   end
 
   def transfer_account
     TransferAccountWorker.perform_async(self.id, new_user.id);
+  end
+
+  def classrooms_i_teach_with_students
+    classrooms_i_teach.includes(:students).map do |classroom|
+      classroom_h = classroom.attributes
+      classroom_h[:students] = classroom.students
+      classroom_h
+    end
   end
 
   def classroom_activities(includes_value = nil)
@@ -116,13 +128,6 @@ module Teacher
     end
   end
 
-  def teacher_subscription
-    subscriptions
-      .where("subscriptions.expiration >= ?", Date.today)
-      .first
-      .account_type
-  end
-
   def getting_started_info
     checkbox_data = {
       completed: self.checkboxes.map(&:objective_id),
@@ -152,7 +157,7 @@ module Teacher
 
   def trial_days_remaining
     valid_subscription = subscriptions.where("subscriptions.expiration >= ?", Date.today).first
-    if valid_subscription && (valid_subscription.account_type == 'trial')
+    if valid_subscription && (valid_subscription.is_not_paid?)
       (valid_subscription.expiration - Date.today).to_i
     else
       nil
@@ -171,7 +176,7 @@ module Teacher
       'school'
     elsif is_premium?
       ## returns 'trial' or 'paid'
-      subscriptions.where("subscriptions.expiration >= ?", Date.today).first.account_type
+      subscriptions.where("subscriptions.expiration >= ?", Date.today).first.trial_or_paid
     elsif is_trial_expired?
       "locked"
     else
@@ -182,6 +187,5 @@ module Teacher
   def is_beta_period_over?
     Date.today >= TRIAL_START_DATE
   end
-
 
 end

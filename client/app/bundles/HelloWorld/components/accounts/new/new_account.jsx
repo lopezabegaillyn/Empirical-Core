@@ -130,9 +130,13 @@ export default React.createClass({
   },
 
   uponSignUp: function (data) {
+    let analytics = new AnalyticsWrapper()
+    console.log(analytics);
     if (this.state.role === 'student') {
-      window.location = "/profile";
+      window.location = '/profile';
+      analytics.track('Student created an account')
     } else if (this.state.role === 'teacher') {
+      analytics.track('Teacher created an account')
       this.setState({teacherStage: 2});
     }
   },
@@ -159,7 +163,9 @@ export default React.createClass({
                               update={this.update}
                               signUp={this.signUp}
                               errors={this.state.errors}
-                              analytics={this.state.analytics}/>;
+                              analytics={this.state.analytics}
+                              teacherFromGoogleSignUp={this.props.teacherFromGoogleSignUp}
+                              />;
       }
     }
     return <div className='container account-form' id='sign-up'>{view}</div>;

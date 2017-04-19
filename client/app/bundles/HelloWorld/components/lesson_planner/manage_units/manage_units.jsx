@@ -3,10 +3,10 @@
  import React from 'react'
  import $ from 'jquery'
  import Units from './units'
+ import EmptyAssignedUnits from './EmptyAssignedUnits.jsx'
  import LoadingIndicator from '../../shared/loading_indicator'
 
  export default React.createClass({
-
 
 	getInitialState: function () {
 		return {
@@ -15,20 +15,31 @@
 		}
 	},
 
-	componentDidMount: function () {
+	componentWillMount: function () {
 		$.ajax({
 			url: '/teachers/units',
 			data: {},
 			success: this.displayUnits,
 			error: function () {
 			}
-
 		});
 	},
+
+  hashLinkScroll: function() {
+  const hash = window.location.hash
+  if (hash !== '') {
+      const id = hash.replace('#', '')
+      const element = document.getElementById(id)
+      element ? element.scrollIntoView() : null
+    }
+  },
+
 	displayUnits: function (data) {
 		this.setState({units: data.units,
 									 loaded: true});
+    this.hashLinkScroll()
 	},
+
 	hideUnit: function (id) {
 		var units, x1;
 		units = this.state.units;
@@ -38,15 +49,15 @@
 		this.setState({units: x1});
 
 		$.ajax({
-			type: "put",
-			url: "/teachers/units/" + id + "/hide",
+			type: 'put',
+			url: '/teachers/units/' + id + '/hide',
 			success: function () {
 			},
 			error: function () {
 			}
 		});
 	},
-	deleteClassroomActivity: function (ca_id, unit_id) {
+	hideClassroomActivity: function (ca_id, unit_id) {
 		var units, x1;
 		units = this.state.units;
 		x1 = _.map(units, function (unit) {
@@ -60,19 +71,21 @@
 		this.setState({units: x1});
 
 		$.ajax({
-			type: "delete",
-			url: "/teachers/classroom_activities/" + ca_id,
+			type: 'put',
+			url: '/teachers/classroom_activities/' + ca_id + '/hide',
 			success: function () {
 			},
 			error: function () {
 			}
 		});
 	},
+
 	updateDueDate: function (ca_id, date) {
 		$.ajax({
-			type: "put",
-			data: {due_date: date},
-			url: "/teachers/classroom_activities/" + ca_id,
+			type: 'put',
+      dataType: 'json',
+			data: {classroom_activity: {due_date: date}},
+			url: '/teachers/classroom_activities/' + ca_id,
 			success: function () {
 			},
 			error: function () {
@@ -85,23 +98,9 @@
 		this.props.actions.toggleTab('createUnit');
 	},
 
-	switchToExploreActivityPacks: function () {
-		this.props.actions.toggleTab('exploreActivityPacks');
-	},
-
 	stateBasedComponent: function () {
-		if (this.state.units.length === 0 && this.state.loaded) {
-			return (
-				<div className="row empty-unit-manager">
-					<div className="col-xs-7">
-						<p>Welcome! This is where your assigned activity packs are stored, but it's empty at the moment.</p>
-						<p>Let's add your first activity from the Featured Activity Pack library.</p>
-					</div>
-					<div className="col-xs-4">
-						<button onClick={this.switchToExploreActivityPacks} className="button-green create-unit featured-button">Browse Featured Activity Packs</button>
-					</div>
-				</div>
-			);
+		if (this.state.units.filter((unit) => unit.classroom_activities.length > 0).length === 0 && this.state.loaded) {
+      return <EmptyAssignedUnits/>
 		} else if (!this.state.loaded){
       return <LoadingIndicator />
     } else {
@@ -114,7 +113,7 @@
 				<Units
 					updateDueDate={this.updateDueDate}
 					editUnit={this.props.actions.editUnit}
-					deleteClassroomActivity={this.deleteClassroomActivity}
+					hideClassroomActivity={this.hideClassroomActivity}
 					hideUnit={this.hideUnit} data={this.state.units} />
 				</span>
 			);

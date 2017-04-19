@@ -5,10 +5,15 @@
 
   .section-header {
     line-height: 63px;
+    padding-left: 16px;
   }
 
   section {
     border-bottom: none;
+  }
+
+  section.next-activity {
+    padding-left: 13px;
   }
 
   .classroom-box {
@@ -40,6 +45,12 @@
         margin-top: auto;
         background-color: #027360;
       }
+    }
+    .classroom-box-classroom {
+      display: inline-block;
+      height: 40px;
+      text-overflow: ellipsis;
+      overflow: hidden;
     }
   }
 

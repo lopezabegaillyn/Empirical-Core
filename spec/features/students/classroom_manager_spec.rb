@@ -9,20 +9,20 @@ feature 'Student Classroom Manager', js: true do
     vcr_ignores_localhost
     sign_in_user student
     visit('/students_classrooms/classroom_manager')
-  end
+  endpending
 
   describe 'the Classroom Manager page' do
 
-    it 'renders the correct view' do
+    pending 'renders the correct view' do
       page.find("#archived_classrooms_manager")
     end
 
-    it 'shows a list displaying all of the current users active classrooms' do
+    pending 'shows a list displaying all of the current users active classrooms' do
       eventually { expect(page).to have_content(classroom1.name) }
       eventually { expect(page).to have_content(classroom2.name) }
     end
 
-    it 'can archive an existing classroom' do
+    pending 'can archive an existing classroom' do
       cl = student.classrooms.first
       find(".#{cl.name.gsub(/\s+/, '')}", :text => 'Archive').click
       eventually { expect(StudentsClassrooms.unscoped.where(student_id: student.id, visible: false, classroom_id: cl.id).count).to eq(1)}
@@ -75,4 +75,4 @@ end
 #   end
 #
 #
-# end
+end

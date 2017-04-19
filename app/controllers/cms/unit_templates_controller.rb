@@ -50,10 +50,12 @@ class Cms::UnitTemplatesController < ApplicationController
                     :name,
                     :flag,
                     :author_id,
+                    :activity_info,
                     :problem,
                     :summary,
                     :teacher_review,
                     :time,
+                    :order_number,
                     :unit_template_category_id,
                     grades: [],
                     activity_ids: [])

@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`BasicTeacherInfo component renders a signup form 1`] = `
+<div>
+  <h3
+    className="sign-up-header"
+  >
+    Sign up for a Teacher Account
+  </h3>
+  <auth_sign_up />
+  <p
+    className="support-p text-center"
+  >
+    We now support Google Classroom!
+  </p>
+  <div
+    className="row"
+  >
+    <div
+      className="col-xs-offset-3 col-xs-9"
+    >
+      <div
+        className="col-xs-8 need-a-border"
+      />
+      <div
+        className="row new-teacher-form-fields"
+      >
+        <div
+          className="col-xs-12 form-fields"
+        />
+      </div>
+      <div
+        className="row"
+      >
+        <div
+          className="col-xs-8"
+        >
+          <input
+            name="sendNewsletter"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          Send me monthly Quill updates
+        </div>
+      </div>
+      <div
+        className="row"
+      >
+        <div
+          className="col-xs-12"
+        >
+          <button
+            className="button-green col-xs-8"
+            id="sign_up"
+            onClick={[Function]}
+          >
+            Sign Up
+          </button>
+        </div>
+      </div>
+      <div
+        className="row"
+      >
+        <div
+          className="col-xs-8"
+        >
+          <div
+            className="text-align-center"
+          >
+            By signing up, you agree to our 
+            <a
+              href="/tos"
+              target="_blank"
+            >
+              terms of service
+            </a>
+             and 
+            <a
+              href="/privacy"
+              target="_blank"
+            >
+              privacy policy
+            </a>
+            .
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

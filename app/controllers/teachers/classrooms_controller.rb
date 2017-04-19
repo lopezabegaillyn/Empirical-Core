@@ -14,22 +14,13 @@ class Teachers::ClassroomsController < ApplicationController
 
   def new
     class_ids = current_user.classrooms_i_teach.map(&:id)
+    @user = current_user
     @has_activities = ClassroomActivity.where(classroom_id: class_ids).exists?
   end
 
   def classrooms_i_teach
     @classrooms = current_user.classrooms_i_teach
     render json: @classrooms.order(:updated_at)
-  end
-
-  def classrooms_i_teach_with_students
-    classrooms = current_user.classrooms_i_teach.includes(:students)
-    classrooms_with_students = classrooms.map do |classroom|
-      classroom_h = classroom.attributes
-      classroom_h[:students] = classroom.students
-      classroom_h
-    end
-    render json: classrooms_with_students
   end
 
   def regenerate_code

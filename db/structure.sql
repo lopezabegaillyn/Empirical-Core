@@ -137,7 +137,8 @@ CREATE TABLE activity_classifications (
     module_url character varying(255),
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
-    app_name character varying(255)
+    app_name character varying(255),
+    order_number integer DEFAULT 999999999
 );
 
 
@@ -1249,7 +1250,11 @@ CREATE TABLE unit_templates (
     problem text,
     summary text,
     teacher_review text,
-    flag character varying
+    flag character varying,
+    order_number integer DEFAULT 999999999,
+    activity_info text,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
 );
 
 
@@ -1325,8 +1330,40 @@ CREATE TABLE users (
     clever_id character varying(255),
     signed_up_with_google boolean DEFAULT false,
     send_newsletter boolean DEFAULT false,
-    flag character varying
+    flag character varying,
+    google_id character varying
 );
+
+
+--
+-- Name: untitled_materialized_view; Type: MATERIALIZED VIEW; Schema: public; Owner: -
+--
+
+CREATE MATERIALIZED VIEW untitled_materialized_view AS
+ SELECT ((sum(a.total_students) / sum(b.total_students)) * (( SELECT count(DISTINCT s.id) AS students
+           FROM ((((((users t
+             LEFT JOIN ip_locations ON ((ip_locations.user_id = t.id)))
+             LEFT JOIN classrooms ON ((t.id = classrooms.teacher_id)))
+             LEFT JOIN users s ON (((classrooms.code)::text = (s.classcode)::text)))
+             LEFT JOIN activity_sessions ON ((s.id = activity_sessions.user_id)))
+             LEFT JOIN schools_users ON ((t.id = schools_users.user_id)))
+             LEFT JOIN schools ON ((schools_users.school_id = schools.id)))
+          WHERE (((activity_sessions.state)::text = 'finished'::text) AND (activity_sessions.completed_at < date_trunc('DAY'::text, (('now'::text)::date - '1 year'::interval))) AND ((ip_locations.country IS NULL) OR ((ip_locations.country)::text = 'United States'::text)))))::numeric)
+   FROM ( SELECT count(DISTINCT students.id) AS total_students
+           FROM ((((schools s
+             JOIN schools_users ON ((schools_users.school_id = s.id)))
+             JOIN users teacher ON ((schools_users.user_id = teacher.id)))
+             JOIN classrooms ON ((teacher.id = classrooms.teacher_id)))
+             JOIN users students ON (((students.classcode)::text = (classrooms.code)::text)))
+          WHERE ((schools_users.school_id IS NOT NULL) AND (s.free_lunches >= 40))) a,
+    ( SELECT count(DISTINCT students.id) AS total_students
+           FROM ((((schools s
+             JOIN schools_users ON ((schools_users.school_id = s.id)))
+             JOIN users teacher ON ((schools_users.user_id = teacher.id)))
+             JOIN classrooms ON ((teacher.id = classrooms.teacher_id)))
+             JOIN users students ON (((students.classcode)::text = (classrooms.code)::text)))
+          WHERE (schools_users.school_id IS NOT NULL)) b
+  WITH NO DATA;
 
 
 --
@@ -2224,6 +2261,13 @@ CREATE INDEX index_topics_on_topic_category_id ON topics USING btree (topic_cate
 
 
 --
+-- Name: index_unit_templates_on_activity_info; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_unit_templates_on_activity_info ON unit_templates USING btree (activity_info);
+
+
+--
 -- Name: index_unit_templates_on_author_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -2270,6 +2314,13 @@ CREATE INDEX index_users_on_email ON users USING btree (email);
 --
 
 CREATE INDEX index_users_on_flag ON users USING btree (flag);
+
+
+--
+-- Name: index_users_on_google_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_users_on_google_id ON users USING btree (google_id);
 
 
 --
@@ -2754,4 +2805,14 @@ INSERT INTO schema_migrations (version) VALUES ('20170126211938');
 INSERT INTO schema_migrations (version) VALUES ('20170127014847');
 
 INSERT INTO schema_migrations (version) VALUES ('20170127020417');
+
+INSERT INTO schema_migrations (version) VALUES ('20170217201048');
+
+INSERT INTO schema_migrations (version) VALUES ('20170222165119');
+
+INSERT INTO schema_migrations (version) VALUES ('20170313154512');
+
+INSERT INTO schema_migrations (version) VALUES ('20170314181527');
+
+INSERT INTO schema_migrations (version) VALUES ('20170315183853');
 

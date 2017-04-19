@@ -1,6 +1,6 @@
 class Teachers::ClassroomManagerController < ApplicationController
   respond_to :json, :html
-  before_filter :teacher!
+  before_filter :teacher_or_public_activity_packs
   before_filter :authorize!
   include ScorebookHelper
   include LastActiveClassroom
@@ -16,7 +16,6 @@ class Teachers::ClassroomManagerController < ApplicationController
       @last_classroom_id = current_user.classrooms_i_teach.last.id
     end
   end
-
 
   def generic_add_students
     if current_user && current_user.role == 'teacher'
@@ -41,6 +40,7 @@ class Teachers::ClassroomManagerController < ApplicationController
 
   def invite_students
     @classrooms = current_user.classrooms_i_teach
+    @user = current_user
   end
 
   def manage_archived_classrooms
@@ -68,17 +68,12 @@ class Teachers::ClassroomManagerController < ApplicationController
       classroom = Classroom.find_by_id(cr_id)
       @selected_classroom = {name: classroom.try(:name), value: classroom.try(:id), id: classroom.try(:id)}
       if current_user.students.empty?
-        if current_user.classrooms_i_teach.last.activities.empty?
-          redirect_to(controller: "teachers/classroom_manager",
-            action: "lesson_planner",
-            tab: "exploreActivityPacks",
-            grade: current_user.classrooms_i_teach.last.grade)
-        else
-          redirect_to invite_students_teachers_classrooms_path
-        end
+        @missing = 'students'
+      elsif Unit.find_by(user_id: current_user.id).nil?
+        @missing = 'activities'
       end
     elsif current_user.classrooms_i_teach.empty?
-      redirect_to new_teachers_classroom_path
+      @missing = 'true'
     end
   end
 
@@ -86,12 +81,14 @@ class Teachers::ClassroomManagerController < ApplicationController
     if current_user.classrooms_i_teach.empty?
       redirect_to new_teachers_classroom_path
     end
+    @firewall_test = true
   end
 
 
   def students_list
     @classroom = Classroom.find params[:id]
-    render json: {students: @classroom.students.sort{|a,b| b.created_at <=> a.created_at}}
+    last_name = "substring(users.name, '(?=\s).*')"
+    render json: {students: @classroom.students.order("#{last_name} asc, users.name asc")}
   end
 
 
@@ -139,7 +136,7 @@ class Teachers::ClassroomManagerController < ApplicationController
 
   def scores
     classrooms = current_user.classrooms_i_teach.includes(classroom_activities: [:unit])
-    units = classrooms.map(&:classroom_activities).flatten.map(&:unit).uniq.compact
+    units = classrooms.map(&:classroom_activities).flatten.map(&:unit).uniq.compact.sort_by { |unit| unit.created_at }
     selected_classroom =  Classroom.find_by id: params[:classroom_id]
     scores, is_last_page = current_user.scorebook_scores params[:current_page].to_i, selected_classroom.try(:id), params[:unit_id], params[:begin_date], params[:end_date]
     render json: {
@@ -161,27 +158,76 @@ class Teachers::ClassroomManagerController < ApplicationController
   end
 
   def update_my_account
-    response = current_user.update_teacher params
+    # ⚠️ prevent teachers from making themselves superadmins 😱
+    if params[:role] && (params[:role] == 'teacher' || params[:role] == 'student')
+      response = current_user.update_teacher params
+      puts "Passes validation"
+    else
+      response = false
+      puts "fails validation"
+    end
     render json: response
   end
 
-  def delete_my_account
+  def clear_data
     sign_out
-    User.find(params[:id]).destroy
+    User.find(params[:id]).clear_data
+    render json: {}
+  end
+
+  def google_sync
+    # renders the google sync jsx file
+  end
+
+  def retrieve_google_classrooms
+    google_response = GoogleIntegration::Classroom::Main.pull_data(current_user, session[:google_access_token])
+    data = google_response === 'UNAUTHENTICATED' ? {errors: google_response} : {classrooms: google_response}
+    render json: data
+  end
+
+  def update_google_classrooms
+    if current_user.google_classrooms.any?
+      google_classroom_ids = JSON.parse(params[:selected_classrooms]).map{ |sc| sc["id"] }
+      current_user.google_classrooms.each do |classy|
+        if google_classroom_ids.exclude?(classy.google_classroom_id)
+          classy.update(visible: false)
+        end
+      end
+    end
+    GoogleIntegration::Classroom::Creators::Classrooms.run(current_user, JSON.parse(params[:selected_classrooms], {:symbolize_names => true}))
+    render json: { classrooms: current_user.google_classrooms }.to_json
+  end
+
+  def import_google_students
+    GoogleStudentImporterWorker.perform_async(current_user.id, session[:google_access_token])
     render json: {}
   end
 
   private
 
   def authorize!
-    puts "Authorizing!"
-    puts current_user.classrooms_i_teach.any?
     if current_user.classrooms_i_teach.any?
       if params[:classroom_id].present? and params[:classroom_id].length > 0
         @classroom = Classroom.find(params[:classroom_id])
       end
       @classroom ||= current_user.classrooms_i_teach.first
       auth_failed unless @classroom.teacher == current_user
+    end
+  end
+
+  def teacher_or_public_activity_packs
+    if !current_user && request.path.include?('featured-activity-packs')
+      if params[:category]
+        redirect_to "/activities/packs/category/#{params[:category]}"
+      elsif params[:activityPackId]
+        redirect_to "/activities/packs/#{params[:activityPackId]}"
+      elsif params[:grade]
+        redirect_to "/activities/packs/grade/#{params[:grade]}"
+      else
+        redirect_to "/activities/packs"
+      end
+    else
+      teacher!
     end
   end
 

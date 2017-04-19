@@ -10,13 +10,6 @@ describe ClassroomActivity, type: :model do
     let!(:unit) { FactoryGirl.create(:unit) }
     let!(:classroom_activity) { ClassroomActivity.create(activity: activity, classroom: classroom, unit: unit) }
 
-    describe '#destroy' do
-        it 'should destroy associated activity_sessions' do
-            classroom_activity.destroy
-            expect(student.activity_sessions.count).to eq(0)
-        end
-    end
-
     describe '#assigned_students' do
         it 'must be empty if none assigned' do
             expect(classroom_activity.assigned_students).to be_empty
@@ -74,16 +67,22 @@ describe ClassroomActivity, type: :model do
 
         it 'assigns a classroom activity through a custom activity pack' do
             obj = Objective.create(name: 'Build Your Own Activity Pack')
-            unit.update(name: 'There is no way a featured activity pack would have this name')
-            classroom_activity.save
+            new_unit = Unit.create(name: 'There is no way a featured activity pack would have this name')
+            classroom_activity.update(unit: new_unit)
             expect(classroom_activity.classroom.teacher.checkboxes.last.objective).to eq(obj)
         end
 
         it 'assigns a classroom activity through a featured activity pack' do
-            featured = UnitTemplate.create(name: 'Adverbs')
+            UnitTemplate.create(name: 'Adverbs')
             obj = Objective.create(name: 'Assign Featured Activity Pack')
-            unit.update(name: 'Adverbs')
-            classroom_activity.save
+            new_unit = Unit.create(name: 'Adverbs')
+            classroom_activity.update!(unit: new_unit)
+            expect(classroom_activity.classroom.teacher.checkboxes.last.objective).to eq(obj)
+        end
+
+        it 'assigns the entry diagnostic' do
+            obj = Objective.create(name: 'Assign Entry Diagnostic')
+            classroom_activity.update!(activity_id: 413)
             expect(classroom_activity.classroom.teacher.checkboxes.last.objective).to eq(obj)
         end
     end
@@ -133,12 +132,12 @@ describe ClassroomActivity, type: :model do
           expect(classroom_activity.validate_assigned_student(student.id)).to be true
         end
 
-        it 'assigned_students_ids is nil' do
+        it 'assigned_student_ids is nil' do
           classroom_activity.assigned_student_ids = nil
           expect(classroom_activity.validate_assigned_student(student.id)).to be true
         end
 
-        it 'assigned_students_ids contains the student id' do
+        it 'assigned_student_ids contains the student id' do
           classroom_activity.assigned_student_ids = [student.id]
           expect(classroom_activity.validate_assigned_student(student.id)).to be true
         end
@@ -148,6 +147,19 @@ describe ClassroomActivity, type: :model do
       it 'must return false when assigned_student_ids does not contain the student id' do
         classroom_activity.assigned_student_ids = [student.id + 1]
         expect(classroom_activity.validate_assigned_student(student.id)).to be false
+      end
+    end
+
+    describe 'validates non-duplicate' do
+      it 'will not save a classroom activity with the same unit, activity, visibility, and classroom as another classroom activity' do
+        new_ca = ClassroomActivity.create(activity: classroom_activity.activity, classroom: classroom_activity.classroom, unit: classroom_activity.unit)
+        expect(new_ca.persisted?).to be false
+      end
+
+      it 'will allow a classroom activity with the same unit, activity, and classroom, but different visibility' do
+        classroom_activity.update(visible: false)
+        new_ca = ClassroomActivity.create(activity: classroom_activity.activity, classroom: classroom_activity.classroom, unit: classroom_activity.unit)
+        expect(new_ca.persisted?).to be true
       end
     end
 end

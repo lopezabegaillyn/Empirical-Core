@@ -12,7 +12,6 @@ import LoadingSpinner from '../components/shared/loading_indicator.jsx'
 export default React.createClass({
 	propTypes: {
 		userType: React.PropTypes.string.isRequired,
-		teacherId: React.PropTypes.number.isRequired
 	},
 
 	getInitialState: function() {
@@ -84,6 +83,8 @@ export default React.createClass({
 			username: data.username,
 			email: data.email,
 			role: data.role,
+			googleId: data.google_id,
+			signedUpWithGoogle: data.signed_up_with_google,
 			selectedSchool: schoolData,
 			originalSelectedSchoolId: originalSelectedSchoolId,
 			schoolOptionsDoNotApply: (originalSelectedSchoolId == null),
@@ -93,7 +94,7 @@ export default React.createClass({
 	},
 	displayHeader: function() {
 		var str = this.state.name;
-		var str2 = str + "'s Account";
+		var str2 = str + '\'s Account';
 		return str2;
 	},
 	updateName: function(event) {
@@ -135,7 +136,7 @@ export default React.createClass({
 		} else if (this.props.userType == 'teacher') {
 			url = '/teachers/update_my_account';
 		}
-		$.ajax({type: "PUT", data: data, url: url, success: this.uponUpdateAttempt});
+		$.ajax({type: 'PUT', data: data, url: url, success: this.uponUpdateAttempt});
 	},
 
 	uponUpdateAttempt: function(data) {
@@ -157,7 +158,7 @@ export default React.createClass({
 			if (this.state.subscription.id != null) {
 				this.destroySubscription()
 			}
-		} else if (this.state.subscription.account_type == 'paid' || 'trial') {
+		} else if (this.state.subscription.account_type == 'paid' || 'trial' || 'free low-income' || 'free contributor') {
 			if (this.state.subscription.id == null) {
 				this.createSubscription();
 			} else {
@@ -231,13 +232,13 @@ export default React.createClass({
 		var confirmed = confirm('Are you sure you want to delete this account?');
 		if (confirmed) {
 			$.ajax({
-				type: 'DELETE',
-				url: '/teachers/delete_my_account',
+				type: 'POST',
+				url: `/teachers/clear_data/${this.state.id}`,
 				data: {
 					id: this.props.teacherId
 				}
 			}).done(function() {
-				window.location.href = "http://quill.org";
+				window.location.href = window.location.origin;
 			});
 		}
 	},
@@ -271,7 +272,7 @@ export default React.createClass({
 		if (this.state.loading) {
 			return <LoadingSpinner/>
 		}
-		var selectRole,
+		let selectRole, subscription, showEmail
 			subscription;
 		if (this.props.userType == 'staff') {
 			selectRole = <SelectRole role={this.state.role} updateRole={this.updateRole} errors={this.state.errors.role}/>
@@ -280,6 +281,38 @@ export default React.createClass({
 			selectRole = <UserSelectRole role={this.state.roll || 'teacher'} updateRole={this.updateRole}/>
 			subscription = <StaticDisplaySubscription subscription={this.state.subscription}/>
 		}
+
+		// TODO deprecate signedUpWithGoogle - need it here for now
+		if (this.state.googleId || this.state.signedUpWithGoogle) {
+			if (this.props.userType == 'staff') {
+				showEmail = <div className='row'>
+											<div className='form-label col-xs-2'>
+												Email
+											</div>
+											<div className='col-xs-4'>
+												<input className="inactive" ref='email' value={this.state.email} readOnly/>
+											</div>
+											<div className='col-xs-4 error'>
+												<span>This is a Google Classroom user, so changing their email here will break their account. Have a dev do it.</span>
+											</div>
+										</div>
+			}
+		} else {
+			showEmail = <div className='row'>
+										<div className='form-label col-xs-2'>
+											Email
+										</div>
+										<div className='col-xs-4'>
+											<input ref='email' onChange={this.updateEmail} value={this.state.email}/>
+										</div>
+										<div className='col-xs-4 error'>
+											{this.state.errors.email}
+										</div>
+									</div>
+		}
+
+
+
 		return (
 			<div className='container' id='my-account'>
 				<div className='row'>
@@ -314,17 +347,8 @@ export default React.createClass({
 
 						{selectRole}
 
-						<div className='row'>
-							<div className='form-label col-xs-2'>
-								Email
-							</div>
-							<div className='col-xs-4'>
-								<input ref='email' onChange={this.updateEmail} value={this.state.email}/>
-							</div>
-							<div className='col-xs-4 error'>
-								{this.state.errors.email}
-							</div>
-						</div>
+						{showEmail}
+
 						<div className='row'>
 							<div className='form-label col-xs-2'>
 								Password

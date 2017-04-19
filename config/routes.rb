@@ -59,6 +59,7 @@ EmpiricalGrammar::Application.routes.draw do
 
 
   get 'students_classrooms_json' => 'profiles#students_classrooms_json'
+  get 'student_profile_data' => 'profiles#student_profile_data'
 
 
   resources :activities, only: [] do
@@ -68,36 +69,49 @@ EmpiricalGrammar::Application.routes.draw do
 
   resources :grades, only: [:index]
 
-  get :porthole_proxy, to: 'porthole_proxy#index'
-
   get :current_user_json, controller: 'teachers', action: 'current_user_json'
 
   get 'account_settings' => 'students#account_settings'
   put 'make_teacher' => 'students#make_teacher'
 
+  put 'teachers/update_current_user' => 'teachers#update_current_user'
+  get 'teachers/classrooms_i_teach_with_students' => 'teachers#classrooms_i_teach_with_students'
   post 'teachers/classrooms/:class_id/unhide', controller: 'teachers/classrooms', action: 'unhide'
-
   get 'teachers/classrooms/:id/student_logins', only: [:pdf], controller: 'teachers/classrooms', action: 'generate_login_pdf', as: :generate_login_pdf, defaults: { format: 'pdf' }
 
   namespace :teachers do
 
-    resources :units, as: 'units_path' # moved from within classroom, since units are now cross-classroom
-    get 'unit_names' => 'units#unit_names'
+    resources :units, as: 'units_path' do
+      get :classrooms_with_students_and_classroom_activities, on: :member
+      put :update_classroom_activities_assigned_students, on: :member
+      put :update_activities, on: :member
+    end # moved from within classroom, since units are now cross-classroom
+
+    get 'prohibited_unit_names' => 'units#prohibited_unit_names'
+    get 'last_assigned_unit_id' => 'units#last_assigned_unit_id'
+
 
     resources :unit_templates, only: [:index] do
       collection do
+        get :profile_info, controller: 'unit_templates', action: 'profile_info'
+        get :assigned_info, controller: 'unit_templates', action: 'assigned_info'
         post :fast_assign, controller: 'unit_templates', action: 'fast_assign'
       end
     end
 
-    resources :classroom_activities, only: [:destroy, :update], as: 'classroom_activities_path'
+    resources :classroom_activities, only: [:destroy, :update], as: 'classroom_activities_path' do
+      collection do
+        put ':id/hide' => 'classroom_activities#hide'
+      end
+    end
+
     get 'getting_started' => 'classroom_manager#getting_started'
     get 'add_students' => 'classroom_manager#generic_add_students'
     get 'teacher_guide' => 'classroom_manager#teacher_guide'
     get 'my_account' => 'classroom_manager#my_account'
     get 'my_account_data' => 'classroom_manager#my_account_data'
     put 'update_my_account' => 'classroom_manager#update_my_account'
-    delete 'delete_my_account' => 'classroom_manager#delete_my_account'
+    post 'clear_data/:id' => 'classroom_manager#clear_data'
     put 'units/:id/hide' => 'units#hide', as: 'hide_units_path'
     get 'progress_reports/landing_page' => 'progress_reports#landing_page'
     namespace :progress_reports do
@@ -109,7 +123,8 @@ EmpiricalGrammar::Application.routes.draw do
       get 'question_view/u/:unit_id/a/:activity_id/c/:classroom_id' => 'diagnostic_reports#question_view'
       get 'classrooms_with_students/u/:unit_id/a/:activity_id/c/:classroom_id' => 'diagnostic_reports#classrooms_with_students'
       get 'students_by_classroom/u/:unit_id/a/:activity_id/c/:classroom_id' => 'diagnostic_reports#students_by_classroom'
-      get 'recommendations_for_classroom/:classroom_id' => 'diagnostic_reports#recommendations_for_classroom'
+      get 'recommendations_for_classroom/:classroom_id/activity/:activity_id' => 'diagnostic_reports#recommendations_for_classroom'
+      get 'previously_assigned_recommendations/:classroom_id/activity/:activity_id' => 'diagnostic_reports#previously_assigned_recommendations'
       post 'assign_selected_packs' => 'diagnostic_reports#assign_selected_packs'
 
       namespace :concepts do
@@ -134,7 +149,6 @@ EmpiricalGrammar::Application.routes.draw do
     resources :classrooms do
       collection do
         get :classrooms_i_teach
-        get :classrooms_i_teach_with_students
         get :regenerate_code
         get :archived_classroom_manager_data, controller: "classroom_manager", action: 'archived_classroom_manager_data'
         get :manage_archived_classrooms, controller: "classroom_manager", action: 'manage_archived_classrooms'
@@ -150,6 +164,10 @@ EmpiricalGrammar::Application.routes.draw do
         get :retrieve_classrooms_for_assigning_activities, controller: 'classroom_manager', action: 'retrieve_classrooms_for_assigning_activities'
         post :assign_activities, controller: 'classroom_manager', action: 'assign_activities'
         get :invite_students, controller: 'classroom_manager', action: 'invite_students'
+        get :google_sync, controller: 'classroom_manager', action: 'google_sync'
+        get :retrieve_google_classrooms, controller: 'classroom_manager', action: 'retrieve_google_classrooms'
+        post :update_google_classrooms, controller: 'classroom_manager', action: 'update_google_classrooms'
+        get :import_google_students, controller: 'classroom_manager', action: 'import_google_students'
 
         ##DASHBOARD ROUTES
         get :classroom_mini, controller: 'classroom_manager', action: 'classroom_mini'
@@ -253,6 +271,7 @@ EmpiricalGrammar::Application.routes.draw do
       member do
         get :show_json
         put :sign_in
+        put :clear_data
         get :sign_in
       end
     end
@@ -260,7 +279,7 @@ EmpiricalGrammar::Application.routes.draw do
 
   # tooltip is just for prototyping tooltip, if its still there you can remove it.
 
-  other_pages = %w(tooltip beta board press blog_posts supporters partners middle_school story learning develop mission faq tos privacy activities new impact stats team premium teacher_resources media_kit play media news home_new map )
+  other_pages = %w(tooltip beta board press blog_posts supporters partners middle_school story learning develop mission faq tos privacy activities new impact stats team premium teacher_resources media_kit play media news home_new map firewall_info)
   all_pages = other_pages
   all_pages.each do |page|
     get page => "pages##{page}", as: "#{page}"
@@ -273,8 +292,20 @@ EmpiricalGrammar::Application.routes.draw do
 
   get 'activities/section/:section_id' => 'pages#activities', as: "activities_section"
   get 'activities/packs' => 'teachers/unit_templates#index'
-  get 'activities/packs/:id' => 'teachers/unit_templates#show'
+  get 'activities/packs/diagnostic', to: redirect('/tools/diagnostic')
+  get 'activities/packs/:id' => 'teachers/unit_templates#index'
+  get 'activities/packs/category/:category' => 'teachers/unit_templates#index'
+  get 'activities/packs/grade/:grade' => 'teachers/unit_templates#index'
 
+  get 'teachers/classrooms/activity_planner/:tab' => 'teachers/classroom_manager#lesson_planner'
+  get 'teachers/classrooms/activity_planner/featured-activity-packs/category/:category' => 'teachers/classroom_manager#lesson_planner'
+  get 'teachers/classrooms/activity_planner/featured-activity-packs/grade/:grade' => 'teachers/classroom_manager#lesson_planner'
+  get 'teachers/classrooms/activity_planner/featured-activity-packs/:activityPackId' => 'teachers/classroom_manager#lesson_planner'
+  get 'teachers/classrooms/activity_planner/featured-activity-packs/:activityPackId/assigned' => 'teachers/classroom_manager#lesson_planner'
+  get 'teachers/classrooms/activity_planner/new_unit/students/edit/name/:unitName/activity_ids/:activityIdsArray' => 'teachers/classroom_manager#lesson_planner'
+  get 'teachers/classrooms/activity_planner/units/:unitId/students/edit' => 'teachers/classroom_manager#lesson_planner'
+  get 'teachers/classrooms/activity_planner/units/:unitId/activities/edit' => 'teachers/classroom_manager#lesson_planner'
+  get 'teachers/classrooms/activity_planner/units/:unitId/activities/edit/:unitName' => 'teachers/classroom_manager#lesson_planner'
 
   # Count route to get quantities
   get 'count/featured_packs' => 'teachers/unit_templates#count'
@@ -283,6 +314,8 @@ EmpiricalGrammar::Application.routes.draw do
   get 'lessons' => 'pages#activities' # so that old links still work
   get 'about' => 'pages#activities' # so that old links still work
   get 'diagnostic' =>'activities#diagnostic' # placeholder til we find where this goes
+  get 'diagnostic/stage/:stage' => 'activities#diagnostic'
+  get 'diagnostic/success' => 'activities#diagnostic'
 
   get 'demo' => 'teachers/progress_reports/standards/classrooms#demo'
 
@@ -300,4 +333,5 @@ EmpiricalGrammar::Application.routes.draw do
 
   # catch-all 404
   get '*path', to: 'application#routing_error'
+
 end
