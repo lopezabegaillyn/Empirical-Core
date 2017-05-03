@@ -52,7 +52,7 @@ class ScoreAnalysis extends Component {
     const sorted = _.sortBy(this.formatDataForTable(), this.state.sort);
     const directed = this.state.direction === 'dsc' ? sorted.reverse() : sorted;
     return _.map(directed, question => (
-      <tr>
+      <tr key={question.key}>
         <td width="600px"><Link to={`/admin/questions/${question.key}`}>{question.prompt}</Link></td>
         <td>{question.percentWeak}</td>
         <td>{question.commonUnmatched}</td>
@@ -68,9 +68,9 @@ class ScoreAnalysis extends Component {
     if (questions.hasreceiveddata && scoreAnalysis.hasreceiveddata) {
       return (
         <div>
-          <p style={{fontSize: '1.5em', textAlign: 'center', margin: '0.75em 0'}}><label for="minResponses">Show questions with a minimum of </label>
-          <input type="number" step="10" min="0" value={this.state.minResponses} ref="minResponses" name="minResponses" onChange={() => this.setState({minResponses: this.refs.minResponses.value})} style={{fontSize: '1.25em', width: '100'}}/>
-          <label for="minResponses"> total responses.</label></p>
+          <p style={{fontSize: '1.5em', textAlign: 'center', margin: '0.75em 0'}}><label htmlFor="minResponses">Show questions with a minimum of </label>
+          <input type="number" step="10" min="0" value={this.state.minResponses} ref="minResponses" name="minResponses" onChange={() => this.setState({minResponses: this.refs.minResponses.value})} style={{fontSize: '1.25em', width: '100px'}}/>
+          <label htmlFor="minResponses"> total responses.</label></p>
           <table className="table is-striped is-bordered">
             <thead>
               <tr>
