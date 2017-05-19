@@ -158,6 +158,21 @@ module Teacher
     premium_state == 'none'
   end
 
+  def prerequisites_hash
+    # checks, in order, if the teacher has classrooms, if they have students, and then if they
+    # built to return after a user fails any check
+    prereq_h = {}
+    classroom_ids = self.classrooms_i_teach.ids
+    prereq_h[:classrooms] = classroom_ids.any?
+    if prereq_h[:classrooms]
+      prereq_h[:students] = StudentsClassrooms.where(classroom_id: classroom_ids).limit(1).any?
+      if prereq_h[:students]
+        prereq_h[:assigned_activities] = ClassroomActivity.where(classroom_id: classroom_ids).limit(1).any?
+      end
+    end
+    prereq_h
+  end
+
   def trial_days_remaining
     valid_subscription = subscriptions.where("subscriptions.expiration >= ?", Date.today).first
     if valid_subscription && (valid_subscription.is_not_paid?)
