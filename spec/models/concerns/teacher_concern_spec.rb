@@ -171,14 +171,14 @@ describe User, type: :model do
 
     end
 
-    describe '#prerequisites_hash when the teacher has' do
+    describe '#onboarding_prerequisites when the teacher has' do
       let!(:teacher_with_students) { FactoryGirl.create(:teacher_with_students) }
       let!(:teacher_with_assigned_activity) {FactoryGirl.create(:teacher_with_students)}
 
       context "none of the prerequisites" do
         let!(:teacher_with_no_classrooms) { FactoryGirl.create(:teacher)}
         it "returns only that they have no classrooms" do
-          expect(teacher_with_no_classrooms.prerequisites_hash).to eq({classrooms: false})
+          expect(teacher_with_no_classrooms.onboarding_prerequisites).to eq({classrooms: false})
         end
       end
 
@@ -186,7 +186,7 @@ describe User, type: :model do
         let!(:teacher_with_classroom) { FactoryGirl.create(:teacher) }
         let!(:classroom) { FactoryGirl.create(:classroom, teacher_id: teacher_with_classroom.id)}
         it "returns that they have classrooms but no students" do
-          expect(teacher_with_classroom.prerequisites_hash).to eq({
+          expect(teacher_with_classroom.onboarding_prerequisites).to eq({
             classrooms: true,
             students: false
             })
@@ -195,7 +195,7 @@ describe User, type: :model do
 
       context "students but no activities" do
         it "returns that they have classrooms but no students" do
-          expect(teacher_with_students.prerequisites_hash).to eq({
+          expect(teacher_with_students.onboarding_prerequisites).to eq({
             classrooms: true,
             students: true,
             assigned_activities: false
@@ -206,7 +206,7 @@ describe User, type: :model do
       context "assigned_activities" do
         let!(:classroom_activity) {FactoryGirl.create(:classroom_activity, classroom_id: teacher_with_students.classrooms_i_teach.first.id)}
         it "returns that they have assigned_activities" do
-          expect(teacher_with_students.prerequisites_hash).to eq({
+          expect(teacher_with_students.onboarding_prerequisites).to eq({
             classrooms: true,
             students: true,
             assigned_activities: true

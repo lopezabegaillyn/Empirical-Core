@@ -158,7 +158,7 @@ module Teacher
     premium_state == 'none'
   end
 
-  def prerequisites_hash
+  def onboarding_prerequisites
     # checks, in order, if the teacher has classrooms, if they have students, and then if they
     # built to return after a user fails any check
     prereq_h = {}
