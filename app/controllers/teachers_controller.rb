@@ -11,6 +11,10 @@ class TeachersController < ApplicationController
     end
   end
 
+  def onboarding_stages_complete
+    render json: current_user.prerequisites_hash
+  end
+
   def current_user_json
     render json: current_user.to_json
   end

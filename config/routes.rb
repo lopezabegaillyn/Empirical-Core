@@ -78,9 +78,9 @@ EmpiricalGrammar::Application.routes.draw do
   get 'teachers/classrooms_i_teach_with_students' => 'teachers#classrooms_i_teach_with_students'
   post 'teachers/classrooms/:class_id/unhide', controller: 'teachers/classrooms', action: 'unhide'
   get 'teachers/classrooms/:id/student_logins', only: [:pdf], controller: 'teachers/classrooms', action: 'generate_login_pdf', as: :generate_login_pdf, defaults: { format: 'pdf' }
+  get 'teachers/onboarding_prerequisites' =>  'teachers#onboarding_prerequisites'
 
   namespace :teachers do
-
     resources :units, as: 'units_path' do
       get :classrooms_with_students_and_classroom_activities, on: :member
       put :update_classroom_activities_assigned_students, on: :member
