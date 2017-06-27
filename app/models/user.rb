@@ -241,7 +241,7 @@ class User < ActiveRecord::Base
 
 
   def subscribe_to_newsletter
-    SubscribeToNewsletterWorker.perform_async(self.id)
+    self.send_newsletter ? SubscribeToNewsletterWorker.perform_async(self.id) : nil
   end
 
   def imported_from_clever?
